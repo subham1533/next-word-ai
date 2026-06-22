@@ -1,15 +1,29 @@
 import numpy as np
 import nltk
+import os
+import pickle
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
+# Resolve paths dynamically
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(BASE_DIR, "data", "corpus.txt")
+MODEL_PATH = os.path.join(BASE_DIR, "models", "next_word_model.h5")
+TOKENIZER_PATH = os.path.join(BASE_DIR, "models", "tokenizer.pkl")
+
 # read dataset
-with open("data.txt", "r") as file:
+with open(DATA_PATH, "r", encoding="utf-8") as file:
     text = file.read().lower()
 
 # tokenize words
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts([text])
+
+# save tokenizer
+os.makedirs(os.path.dirname(TOKENIZER_PATH), exist_ok=True)
+with open(TOKENIZER_PATH, "wb") as file:
+    pickle.dump(tokenizer, file)
+print(f"Tokenizer saved to {TOKENIZER_PATH}")
 
 word_index = tokenizer.word_index
 total_words = len(word_index) + 1
@@ -64,5 +78,5 @@ model.summary()
 
 model.fit(X, y, epochs=100, verbose=1)
 
-model.save("next_word_model.h5")
-print("Model trained and saved!")
+model.save(MODEL_PATH)
+print(f"Model trained and saved to {MODEL_PATH}!")

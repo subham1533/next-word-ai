@@ -1,69 +1,562 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Next Word Predictor AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Word Predictor AI — Deep Learning LSTM Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 25, 40, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-accent: #00ffaa;
+            --primary-accent-glow: rgba(0, 255, 170, 0.15);
+            --secondary-accent: #8b5cf6;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         body {
-            font-family: Arial;
-            background: #111;
-            color: white;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(0, 255, 170, 0.1) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+        }
+
+        .header {
             text-align: center;
-            padding-top: 100px;
+            margin-bottom: 2.5rem;
         }
 
-        input {
-            padding: 10px;
-            width: 300px;
-            font-size: 18px;
-            border-radius: 5px;
-            border: none;
+        .header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-accent), #3b82f6, var(--secondary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-            background: #00ff88;
-            border: none;
-            border-radius: 5px;
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent));
+            border-radius: 24px 24px 0 0;
+        }
+
+        .config-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .config-label {
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .config-select-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .config-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
             cursor: pointer;
         }
 
-        #result {
-            margin-top: 30px;
-            font-size: 22px;
-            color: #00ff88;
+        .config-select:focus {
+            border-color: var(--primary-accent);
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-main);
+            font-size: 1.15rem;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-field:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 20px var(--primary-accent-glow), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-predict {
+            width: 100%;
+            padding: 1.1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            background: linear-gradient(135deg, var(--primary-accent), #10b981);
+            color: #040d16;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 255, 170, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 255, 170, 0.35);
+            filter: brightness(1.1);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+
+        .btn-predict:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .suggestions {
+            margin-top: 1.5rem;
+        }
+
+        .suggestions-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .suggestions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .suggestion-chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(0, 255, 170, 0.08);
+            border-color: var(--primary-accent);
+            color: var(--primary-accent);
+            transform: translateY(-1px);
+        }
+
+        .results-panel {
+            margin-top: 2.5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .results-panel.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+        }
+
+        .result-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .result-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary-accent);
+            text-shadow: 0 0 10px var(--primary-accent-glow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-cols: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .error-message {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-message.active {
+            display: flex;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--primary-accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(4, 13, 22, 0.2);
+            border-top: 3px solid #040d16;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Backend Input */
+        .custom-url-group {
+            display: none;
+            margin-top: 0.5rem;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .custom-url-group.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-url-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .custom-url-input:focus {
+            border-color: var(--secondary-accent);
         }
     </style>
 </head>
-
 <body>
 
-    <h1>🤖 Next Word Prediction AI</h1>
+    <div class="container">
+        
+        <div class="header">
+            <h1>🤖 Next Word AI</h1>
+            <p>LSTM Neural Network Text Predictor Portal</p>
+        </div>
 
-    <input id="textInput" placeholder="Type a sentence..." />
-    <br><br>
-    <button onclick="predict()">Predict</button>
+        <div class="card">
+            
+            <div class="config-panel">
+                <span class="config-label">API Gateway</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                    <div class="config-select-wrapper">
+                        <select class="config-select" id="backendSelect" onchange="handleBackendChange()">
+                            <option value="https://next-word-ai.onrender.com">Cloud Deployed (Render)</option>
+                            <option value="http://localhost:8000">Localhost (Port 8000)</option>
+                            <option value="custom">Custom Endpoint...</option>
+                        </select>
+                    </div>
+                    <div class="custom-url-group" id="customUrlGroup">
+                        <input class="custom-url-input" type="url" id="customBackendUrl" placeholder="Enter endpoint (e.g. http://127.0.0.1:8000)..." value="http://localhost:8000" />
+                    </div>
+                </div>
+            </div>
 
-    <div id="result"></div>
+            <div class="input-group">
+                <input class="input-field" id="textInput" type="text" placeholder="Type a seed phrase here..." autofocus autocomplete="off" onkeydown="if(event.key==='Enter') predict()" />
+            </div>
 
-<script>
-async function predict() {
-    let text = document.getElementById("textInput").value;
+            <button class="btn-predict" id="predictBtn" onclick="predict()">
+                <span id="btnText">Predict Next Word</span>
+                <div class="spinner" id="btnSpinner"></div>
+            </button>
 
-    let response = await fetch("https://next-word-ai.onrender.com/predict", {
- 
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ text: text })
-    });
+            <div class="suggestions">
+                <div class="suggestions-title">Try standard seed phrases:</div>
+                <div class="suggestions-list">
+                    <div class="suggestion-chip" onclick="useSeed('deep learning is')">deep learning is</div>
+                    <div class="suggestion-chip" onclick="useSeed('i love coding in')">i love coding in</div>
+                    <div class="suggestion-chip" onclick="useSeed('python is very')">python is very</div>
+                    <div class="suggestion-chip" onclick="useSeed('projects make')">projects make</div>
+                </div>
+            </div>
 
-    let data = await response.json();
-    document.getElementById("result").innerText = "Next word: " + data.next_word;
-}
-</script>
+            <div class="error-message" id="errorBox">
+                <span>⚠️</span>
+                <span id="errorText">Failed to connect to backend server. Make sure it is running.</span>
+            </div>
 
+            <div class="results-panel" id="resultsPanel">
+                <div class="result-item">
+                    <span class="result-label">Predicted Completion:</span>
+                    <span class="result-value" id="nextWordVal">...</span>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Inference Delay</div>
+                        <div class="stat-value" id="latencyVal">0 ms</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Network Status</div>
+                        <div class="stat-value" style="color: var(--primary-accent);" id="statusVal">200 OK</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            Next Word Predictor AI © 2026 • Powered by Keras LSTM & FastAPI • Open Source
+        </div>
+
+    </div>
+
+    <script>
+        function handleBackendChange() {
+            const select = document.getElementById("backendSelect");
+            const customGroup = document.getElementById("customUrlGroup");
+            if (select.value === "custom") {
+                customGroup.classList.add("active");
+            } else {
+                customGroup.classList.remove("active");
+            }
+        }
+
+        function useSeed(phrase) {
+            const input = document.getElementById("textInput");
+            input.value = phrase;
+            input.focus();
+            predict();
+        }
+
+        async function predict() {
+            const inputEl = document.getElementById("textInput");
+            const btnEl = document.getElementById("predictBtn");
+            const btnTextEl = document.getElementById("btnText");
+            const spinnerEl = document.getElementById("btnSpinner");
+            const resultsPanel = document.getElementById("resultsPanel");
+            const errorBox = document.getElementById("errorBox");
+            
+            const nextWordVal = document.getElementById("nextWordVal");
+            const latencyVal = document.getElementById("latencyVal");
+            const statusVal = document.getElementById("statusVal");
+
+            const text = inputEl.value.trim();
+            if (!text) {
+                showError("Please enter some text before predicting.");
+                return;
+            }
+
+            // Prepare UI state
+            errorBox.classList.remove("active");
+            btnEl.disabled = true;
+            btnTextEl.innerText = "Processing...";
+            spinnerEl.style.display = "block";
+
+            // Resolve target API
+            const select = document.getElementById("backendSelect");
+            let apiUrl = select.value;
+            if (apiUrl === "custom") {
+                apiUrl = document.getElementById("customBackendUrl").value.trim();
+            }
+
+            const cleanApiUrl = apiUrl.replace(/\/$/, ""); // Strip trailing slash
+            const endpoint = `${cleanApiUrl}/predict`;
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const endTime = performance.now();
+                const latency = Math.round(endTime - startTime);
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.detail || `Server returned ${response.status} status.`);
+                }
+
+                const data = await response.json();
+                
+                // Show results
+                nextWordVal.innerText = data.next_word || "[No Match]";
+                latencyVal.innerText = `${latency} ms`;
+                statusVal.innerText = `${response.status} OK`;
+                statusVal.style.color = "var(--primary-accent)";
+                
+                resultsPanel.classList.add("active");
+            } catch (err) {
+                console.error(err);
+                showError(`Failed to fetch prediction: ${err.message}. Ensure the backend is running at ${cleanApiUrl}`);
+                resultsPanel.classList.remove("active");
+            } finally {
+                btnEl.disabled = false;
+                btnTextEl.innerText = "Predict Next Word";
+                spinnerEl.style.display = "none";
+            }
+        }
+
+        function showError(msg) {
+            const errorBox = document.getElementById("errorBox");
+            const errorText = document.getElementById("errorText");
+            errorText.innerText = msg;
+            errorBox.classList.add("active");
+        }
+    </script>
 </body>
 </html>
 

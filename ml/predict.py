@@ -1,19 +1,20 @@
 import numpy as np
+import os
+import pickle
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-import pickle
 
-# load tokenizer
-from tensorflow.keras.preprocessing.text import Tokenizer
+# Resolve paths dynamically
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "next_word_model.h5")
+TOKENIZER_PATH = os.path.join(BASE_DIR, "models", "tokenizer.pkl")
 
-# reload tokenizer from training
-with open("data.txt","r") as file:
-    text = file.read().lower()
+# Load pre-trained tokenizer
+with open(TOKENIZER_PATH, "rb") as file:
+    tokenizer = pickle.load(file)
 
-tokenizer = Tokenizer()
-tokenizer.fit_on_texts([text])
-
-model = load_model("next_word_model.h5")
+# Load pre-trained model
+model = load_model(MODEL_PATH)
 max_seq_len = 5   # small value works fine
 
 def predict_next_word(text_input):

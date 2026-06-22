@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# ML Models and Pickled structures
+# Since next_word_model.h5 is already tracked in repository history, we track it,
+# but we ignore subsequent local model weights and pickled data outputted by runs.
+models/*.h5
+models/*.pkl
+*.h5
+*.pkl
+
+# Environments and Secrets
+.env
+.env.local
+.env.development
+.env.production
+
+# Installation Caches
+.pip/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+.coverage.*
