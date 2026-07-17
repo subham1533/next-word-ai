@@ -398,13 +398,14 @@
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
                     <div class="config-select-wrapper">
                         <select class="config-select" id="backendSelect" onchange="handleBackendChange()">
+                            <option value="http://localhost:8010">Localhost (Port 8010)</option>
                             <option value="https://next-word-ai.onrender.com">Cloud Deployed (Render)</option>
                             <option value="http://localhost:8000">Localhost (Port 8000)</option>
                             <option value="custom">Custom Endpoint...</option>
                         </select>
                     </div>
                     <div class="custom-url-group" id="customUrlGroup">
-                        <input class="custom-url-input" type="url" id="customBackendUrl" placeholder="Enter endpoint (e.g. http://127.0.0.1:8000)..." value="http://localhost:8000" />
+                        <input class="custom-url-input" type="url" id="customBackendUrl" placeholder="Enter endpoint (e.g. http://127.0.0.1:8010)..." value="http://localhost:8010" />
                     </div>
                 </div>
             </div>
